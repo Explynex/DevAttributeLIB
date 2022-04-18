@@ -1,4 +1,4 @@
-═════════════════════════════════════════╣ INFO ╠══════════════════════════════════════════                            
+══════════════════════════════════╣ INFO ╠═══════════════════════════════════                            
  The library is intended to simplify development in console applications. 
 
  Installation information:
@@ -8,6 +8,6 @@
 	3. Put #include "devattribute.h".
 	DONE!
 	
-══════════════════════════════════════╣ HOW TO USE ╠════════════════════════════════════════
+═══════════════════════════════╣ HOW TO USE ╠═════════════════════════════════
 Functionality will expand over time.
  1. Switch std::string. Construction ↓↓↓
