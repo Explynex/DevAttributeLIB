@@ -1,4 +1,5 @@
-#include "devattribute.h"
+﻿#include "devattribute.h"
+#include <iostream>
 HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 void setColor(consoleColor foreground, consoleColor background) {
@@ -13,7 +14,8 @@ void GotoXY(short X, short Y, std::string print, consoleColor foreground, consol
 	if (foreground != WHITE || background != BLACK) setColor(WHITE, BLACK);
 }
 
-void sheetGenerator(int x, int y, const int sizeX, const int sizeY, int lengthX, int lengthY){
+void sheetGenerator(int x, int y, const int sizeX, const int sizeY, int lengthX, int lengthY) {
+	utf.setUtfLocale();
 	lengthY += 1;
 	int buffsizeY = sizeY * lengthY + 1, buffX = x;
 	for (int j = 0; j < sizeX; j++) {
@@ -67,59 +69,131 @@ void pause() {
 std::string printFilter(int x, int y, int length, std::string mode, std::string min,
 	std::string max, int minDig, int maxDig)
 {
-	if (strlen(mode.c_str()) > 3 && "calc" && min < "0" || strlen(mode.c_str())>3 && max > "9") {
+	if (mode.length() > 3 && min < "0" || mode.length() >3 && max > "9") {
 		min = "0"; max = "9";
 	}
+	std::wstring wmin = utf.stows(min), wmax = utf.stows(max);
 	int factive = 0;
-	std::string buff;
-	for (int j = 0; j <= length + 1; j++) {
-	m: std::string key;
-		if (j == length + 1) {
-			buff.erase(strlen(buff.c_str()), 1);
-			j--;
+	std::wstring buff;
+	for (int i = 0; i <= length + 1; i++) {
+	m: std::wstring key;
+		key += _getwch();
+		if (i == length + 1) {
+			i--;
 			goto m;
 		}
-		for (int i = 0; i < 2; i++) {
-			key += _getch();
-			if (GetAsyncKeyState(VK_ESCAPE) != 0) {
-				if (mode == "str") return "0";
-				if (mode == "digit" || mode == "calc") return 0;
-			}
-			if (GetAsyncKeyState(VK_BACK) != 0) {
-				if (j != 0) {
-					if (j == factive)
-						factive = 0;
-					j--;
-					if (buff[j] >= *" " && buff[j] <= *"~" && GetAsyncKeyState(VK_BACK) != 0)
-						buff.erase(strlen(buff.c_str())-1, 1);
-					else buff.erase(strlen(buff.c_str())-2, -2);
-					GotoXY(x + j, y, key);
-					GotoXY(x + j, y, " ");
-					GotoXY(x + j, y);
-				}
-				goto m;
-			}
-			if (GetAsyncKeyState(VK_RETURN) != 0 && j!=0) {
-				if (strlen(mode.c_str()) > 3 && stof(buff) < minDig || strlen(mode.c_str()) > 3 && stof(buff) > maxDig)
-					goto m;
-				return buff;
-			}
-			if (key >= " " && key <= "~") break;
+		if (GetAsyncKeyState(VK_DOWN) != 0 || GetAsyncKeyState(VK_UP) != 0 ||
+			GetAsyncKeyState(VK_LEFT) != 0 || GetAsyncKeyState(VK_RIGHT) != 0) goto m;
+		if (GetAsyncKeyState(VK_ESCAPE) != 0) {
+			if (mode == "str") return "0";
 		}
-		if (mode == "str" && key < min || key > max || strlen(mode.c_str()) > 4 && key < min || key > max)
+		if (GetAsyncKeyState(VK_BACK) != 0) {
+			if (i != 0) {
+				if (i == factive)
+					factive = 0;
+				i--;
+				buff.erase(buff.length() - 1, 1);
+				GotoXY(x + i, y, utf.wstos(key));
+				GotoXY(x + i, y, " ");
+				GotoXY(x + i, y);
+			}
+			goto m;
+		}
+		if (GetAsyncKeyState(VK_RETURN) != 0 && i != 0) {
+			if (mode.length() > 3 && stof(buff) < minDig || mode.length() > 3 && stof(buff) > maxDig)
+				goto m;
+			return utf.wstos(buff);
+		}
+		if (mode == "str" && key < wmin || key > wmax || mode.length() > 4 && key < wmin || key > wmax)
 			goto m;
 		if (mode == "calc") {
-			if (key < min && key != "-" && key != "." || key > max && key != "-" && key != ".")
+			if (key < wmin && key != L"-" && key != L"." || key > wmax && key != L"-" && key != L".")
 				goto m;
-			if (key == "-" && j != 0) goto m;
-			if (key == ".") {
-				if (factive != 0 || j == 0) goto m;
-				factive = j;
+			if (key == L"-" && i != 0) goto m;
+			if (key == L".") {
+				if (factive != 0 || i == 0) goto m;
+				factive = i;
 			}
 		}
-		if (j != length) {
+		if (i != length) {
 			buff += key;
-			GotoXY(x + j, y, key);
+			GotoXY(x + i, y, utf.wstos(key));
 		}
 	}
 }
+
+std::string strtools::toupper(std::string str,std::string flag) {
+	std::wstring wstr = stows(str);
+	if (flag == "") {
+		for (int i = 0; i < wstr.length(); i++) {
+			if (wstr[i] >= 'a' && wstr[i] <= 'z') {
+				wstr[i] = wstr[i] - 32;
+			}
+			else {
+				for (int j = 0; j < RUdown.length(); j++) {
+					if (wstr[i] == RUdown[j])
+						wstr[i] = RUup[j];
+					else {
+						for (int u = 0; u < UAdown.length(); u++) {
+							if (wstr[i] == UAdown[u])
+								wstr[i] = UAup[u];
+						}
+					}
+
+				}
+			}
+		}
+	}
+	if (flag == "el_GR") {
+		for (int i = 0; i < wstr.length(); i++) {
+			for (int j = 0; j < GRdown.length(); j++) {
+				if (wstr[i] == GRdown[j])
+					wstr[i] = GRup[j];
+			}
+		}
+	}
+	return str = wstos(wstr);
+}
+
+std::string strtools::tolower(std::string str, std::string flag) {
+	std::wstring wstr = stows(str);
+	if (flag == "") {
+		for (int i = 0; i < wstr.length(); i++) {
+			if (wstr[i] >= 'A' && wstr[i] <= 'Z') {
+				wstr[i] = wstr[i] + 32;
+			}
+			else {
+				for (int j = 0; j < RUup.length(); j++) {
+					if (wstr[i] == RUup[j])
+						wstr[i] = RUdown[j];
+					else {
+						for (int u = 0; u < UAup.length(); u++) {
+							if (wstr[i] == UAup[u])
+								wstr[i] = UAdown[u];
+						}
+					}
+
+				}
+			}
+		}
+	}
+	if (flag == "el_GR") {
+		for (int i = 0; i < wstr.length(); i++) {
+			for (int j = 0; j < GRup.length(); j++) {
+				if (wstr[i] == GRup[j])
+					wstr[i] = GRdown[j];
+			}
+		}
+	}
+	return str = wstos(wstr);
+}
+
+std::string strtools::strexplus(std::string str1, std::string str2) {
+	std::wstring wstr1 = utf.stows(str1), wstr2 = utf.stows(str2);
+	for (int i = wstr1.length() - 1; 0 <= i; i--)
+		for (int j = 0; j < wstr2.length(); j++)
+			if (wstr1[i] == wstr2[j])
+				wstr1.erase(i, 1);
+	return utf.wstos(wstr1);
+}
+

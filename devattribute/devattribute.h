@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 #ifndef _DEVATTRIBUTE_
 #define _DEVATTRIBUTE_
 //std::to_string() - integer to str conversion func
 
 #include <yvals_core.h>
+#pragma execution_character_set( "utf-8" )
 
 #if _STL_COMPILER_PREPROCESSOR
 
@@ -16,9 +17,9 @@
 #endif //!_FILESYSTEM_
 
 #include <Windows.h>
-#include <iostream>
 #include <conio.h>
 #include <string>
+#include <codecvt>
 
 enum consoleColor {
     BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHTGRAY, DARKGRAY, LIGHTBLUE, LIGHTGREEN, LIGHTCYAN, LIGHTRED, LIGHTMAGENTA, YELLOW, WHITE
@@ -31,7 +32,7 @@ void cleaning(int x, int y, int width, int height);
 void pause();
 std::string printFilter(
     int x, int y, int length, std::string mode = "str", std::string min = " ",
-    std::string max = "ї", int minDig = INT_MIN, int maxDig = INT_MAX);
+    std::string max = "ґ", int minDig = INT_MIN, int maxDig = INT_MAX);
 
 /* Information how to use printFilter function
  *
@@ -53,10 +54,22 @@ std::string printFilter(
  */
 
 
-
-#if defined(_FILESYSTEM_)
-class path {
+class strtools
+{
 public:
+    std::string tolower(std::string str, std::string flag ="");
+    std::string toupper(std::string str,std::string flag="");
+    std::string strexplus(std::string str1, std::string str2);
+    std::wstring stows(const std::string& str) { return converter.from_bytes(str); }
+    std::string wstos(const std::wstring& str) { return converter.to_bytes(str); }
+    void setUtfLocale() {
+        if (init == false) {
+            SetConsoleOutputCP(65001);
+            SetConsoleCP(65001);
+            init = true;
+        }
+    }
+#if defined(_FILESYSTEM_)
     std::string getPath(std::string mode = "path") {
         if (mode == "path")
             return std::filesystem::absolute(std::filesystem::current_path()).string() + "\\";
@@ -75,7 +88,6 @@ public:
             return username;
         }
     }
-
     std::vector < std::string> fileNameList(char only_names = 'n', std::string path_to_dir = "auto") {
         if (path_to_dir == "auto") path_to_dir = getPath("path");
         if (std::filesystem::is_directory(path_to_dir)) {
@@ -92,8 +104,25 @@ public:
             return file_names;
         }
     }
-};
+    void fileRename(std::string old_name, std::string new_name, std::string path_to_dir = "auto") {
+        std::filesystem::path p;
+        if (path_to_dir == "auto") p = std::filesystem::current_path();
+        else  p = path_to_dir;
+        std::filesystem::rename(p / old_name, p / new_name);
+    }
 #endif // defined(_FILESYSTEM_)
+private:
+    std::wstring RUup = (L"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
+    std::wstring RUdown = (L"абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
+    std::wstring UAdown = (L"ґєії"), UAup = (L"ҐЄІЇ");
+    std::wstring GRup = (L"ABГΔEZHΘIKΛMNΞOПPΣTΥΦΧΨΩ");
+    std::wstring GRdown = (L"αβγδεζηθικλμνξοπρστυφχψω");
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    bool init = false;
+
+};
+
+static strtools utf;
 
 #if ( __cplusplus >= 201103L || _MSC_VER)
 #define SWITCH_DECLTYPE decltype
