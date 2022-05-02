@@ -1,7 +1,6 @@
 ﻿#pragma once
 #ifndef _DEVATTRIBUTE_
 #define _DEVATTRIBUTE_
-//std::to_string() - integer to str conversion func
 
 #include <yvals_core.h>
 #pragma execution_character_set( "utf-8" )
@@ -16,43 +15,210 @@
 #include <vector>
 #endif //!_FILESYSTEM_
 
-#include <Windows.h>
+//
+// Include
+//
+
 #include <conio.h>
+#include <Windows.h>
 #include <string>
 #include <codecvt>
+#include <Psapi.h>
+#include <fstream>
 
-enum consoleColor {
+//
+// Types
+//
+
+typedef struct _SYSTEM_FILECACHE_INFORMATION
+{
+    SIZE_T CurrentSize;
+    SIZE_T PeakSize;
+    ULONG PageFaultCount;
+    SIZE_T MinimumWorkingSet;
+    SIZE_T MaximumWorkingSet;
+    SIZE_T CurrentSizeIncludingTransitionInPages;
+    SIZE_T PeakSizeIncludingTransitionInPages;
+    ULONG TransitionRePurposeCount;
+    ULONG Flags;
+} SYSTEM_FILECACHE_INFORMATION;
+
+typedef struct _MEMORY_COMBINE_INFORMATION_EX
+{
+    HANDLE Handle;
+    ULONG_PTR PagesCombined;
+    ULONG Flags;
+} MEMORY_COMBINE_INFORMATION_EX, * PMEMORY_COMBINE_INFORMATION_EX;
+
+//
+// Enums
+//
+
+typedef enum _SYSTEM_INFORMATION_CLASS
+{
+    SystemFileCacheInformation = 21,
+    SystemMemoryListInformation = 80,
+    SystemCombinePhysicalMemoryInformation = 130
+};
+
+typedef enum _SYSTEM_MEMORY_LIST_COMMAND
+{
+    nul = -1,
+    CaptureAccessedBits,
+    CaptureAndResetAccessedBits,
+    EmptyWorkingSets,
+    FlushModifiedList,
+    PurgeStandbyList,
+    PurgeLowPriorityStandbyList,
+    CommandMax
+} SYSTEM_MEMORY_LIST_COMMAND;
+
+typedef enum  consoleColor {
     BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHTGRAY, DARKGRAY, LIGHTBLUE, LIGHTGREEN, LIGHTCYAN, LIGHTRED, LIGHTMAGENTA, YELLOW, WHITE
 };
 
-void setColor(consoleColor foreground, consoleColor background);
-void GotoXY(short X, short Y, std::string print = "", consoleColor foreground = WHITE, consoleColor background = BLACK);
-void sheetGenerator(int x, int y, const int sizeX, const int sizeY, int lengthX, int lengthY);
-void cleaning(int x, int y, int width, int height);
+//
+// Functions prototypes
+//
+
 void pause();
+
+void winPause();
+
+void setConsoleFullscreen();
+
+COORD getConsoleCursorPosition();
+
+void setColor(
+    consoleColor foreground, 
+    consoleColor background
+);
+
+void GotoXY(
+    short X, 
+    short Y, 
+    std::string print = "", 
+    consoleColor foreground = WHITE, 
+    consoleColor background = BLACK
+);
+
+const char* WinFileDialog(
+    HWND hwnd, 
+    const char* mode, 
+    const char* lpstrFilters
+);
+
+void sheetGenerator(
+    int x, 
+    int y, 
+    const int sizeX, 
+    const int sizeY, 
+    int lengthX, 
+    int lengthY
+);
+
+void cleaning(
+    int x, 
+    int y, 
+    int width, 
+    int height, 
+    consoleColor background = BLACK
+);
+
+void setConsoleSize(
+    int columnsX,
+    int linesY
+);
+
+int getConsoleSize(
+    std::string position
+);
+
+void setConsoleNoSelection(
+    BOOL status
+);
+
+BOOL showConsoleCursor(
+    BOOL bShow
+);
+
+void setConsoleNoSelection(
+    BOOL status
+);
+
+BOOL regIsBoot(
+    HKEY hkey,
+    const char* subkey
+);
+
+BOOL addToReg(
+    HKEY hkey,
+    const char* valueName
+);
+
+BOOL delFromReg(
+    HKEY hkey,
+    const char* valueName
+);
+
+void consoleResize(
+    BOOL status
+);
+
+bool removeLineFromFile(
+    std::string filename,
+    int index
+);
+
+BOOL checkPrivilege(
+    HANDLE hToken,
+    LPCTSTR lpszPrivilege,
+    BOOL bEnablePrivilege
+);
+
+LONG calc_percentof64(
+    _In_ LONG64 length,
+    _In_ LONG64 total_length
+);
+
+void mTestButtonGenerate(
+    int rangeXmin,
+    int rangeXmax,
+    int rangeYmin,
+    int rangeYmax,
+    int button
+);
+
+
 std::string printFilter(
-    int x, int y, int length, std::string mode = "str", std::string min = " ",
-    std::string max = "ґ", int minDig = INT_MIN, int maxDig = INT_MAX);
+    int length,
+    int x=getConsoleCursorPosition().X, 
+    int y=getConsoleCursorPosition().Y, 
+    std::string mode = "str", 
+    std::string min = " ",
+    std::string max = "z", 
+    int minDig = INT_MIN, 
+    int maxDig = INT_MAX
+);
 
-/* Information how to use printFilter function
- *
- * +-----------------------+-----+-----+
- * |      *Partition*      | MIN | MAX |
- * +-----------------------+-----+-----+
- * |          ALL          | " " | "ї" |
- * +-----------------------+-----+- ---+
- * |        UA + RU        |А(ru)| "ї" |
- * +-----------------------+-----+-----+   +--------+----------------------+
- * |        EN + RU        |A(en)| "я" |   |  MODE  |         INFO         |
- * +-----------------------+-----+-----+   +--------+----------------------+
- * |          RU           |A(ru)| "я" |   |   --   |     All symbols      |
- * +-----------------------+-----+-----+   +--------+----------------------+------------------------------+
- * |          EN           |A(en)| "z" |   | "calc" |  "0"-"9","." && "-"  | For conversion std::string   |
- * +-----------------------+-----+-----+   +--------+----------------------| stoi,f() - to int,float      |
- * |    DIG + OPERATIONS   | "*" | "9" |   | "digit"|         "0"-"9"      | .c_str() - to pointer char[] |
- * +-----------------------+-----+-----+   +--------+----------------------+------------------------------+
- */
 
+namespace memory {
+
+    BOOL _d_memoryUtil(
+        _SYSTEM_INFORMATION_CLASS sysInfo,
+        _SYSTEM_MEMORY_LIST_COMMAND command
+    );
+    BOOL _d_sysCacheClean();
+    BOOL _d_quickClean();
+    BOOL _d_standbyListNoPriority();
+    BOOL _d_standbyListClean();
+    BOOL _d_sysCacheClean();
+
+}
+
+//
+// Classes
+//
 
 class strtools
 {
@@ -62,6 +228,7 @@ public:
     std::string strexplus(std::string str1, std::string str2);
     std::wstring stows(const std::string& str) { return converter.from_bytes(str); }
     std::string wstos(const std::wstring& str) { return converter.to_bytes(str); }
+    int strfind(std::string str1, std::string str2);
     void setUtfLocale() {
         if (init == false) {
             SetConsoleOutputCP(65001);
@@ -69,6 +236,7 @@ public:
             init = true;
         }
     }
+
 #if defined(_FILESYSTEM_)
     std::string getPath(std::string mode = "path") {
         if (mode == "path")
@@ -111,6 +279,7 @@ public:
         std::filesystem::rename(p / old_name, p / new_name);
     }
 #endif // defined(_FILESYSTEM_)
+
 private:
     std::wstring RUup = (L"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
     std::wstring RUdown = (L"абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
@@ -123,6 +292,10 @@ private:
 };
 
 static strtools utf;
+
+//
+// Templates
+//
 
 #if ( __cplusplus >= 201103L || _MSC_VER)
 #define SWITCH_DECLTYPE decltype
