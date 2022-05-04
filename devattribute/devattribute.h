@@ -74,7 +74,7 @@ typedef enum _SYSTEM_MEMORY_LIST_COMMAND
 } SYSTEM_MEMORY_LIST_COMMAND;
 
 typedef enum  consoleColor {
-    BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHTGRAY, DARKGRAY, LIGHTBLUE, LIGHTGREEN, LIGHTCYAN, LIGHTRED, LIGHTMAGENTA, YELLOW, WHITE
+    NUL = -1,BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHTGRAY, DARKGRAY, LIGHTBLUE, LIGHTGREEN, LIGHTCYAN, LIGHTRED, LIGHTMAGENTA, YELLOW, WHITE
 };
 
 //
@@ -108,13 +108,17 @@ const char* WinFileDialog(
     const char* lpstrFilters
 );
 
+
 void sheetGenerator(
-    int x, 
-    int y, 
-    const int sizeX, 
-    const int sizeY, 
-    int lengthX, 
-    int lengthY
+    int x,
+    int y,
+    const int sizeX,
+    const int sizeY,
+    int lengthX,
+    int lengthY,
+    int boardStyle=0,
+    consoleColor text = WHITE,
+    consoleColor background = BLACK
 );
 
 void cleaning(
@@ -165,6 +169,10 @@ void consoleResize(
     BOOL status
 );
 
+int fact(
+    int val
+);
+
 bool removeLineFromFile(
     std::string filename,
     int index
@@ -181,14 +189,25 @@ LONG calc_percentof64(
     _In_ LONG64 total_length
 );
 
-void mTestButtonGenerate(
-    int rangeXmin,
-    int rangeXmax,
-    int rangeYmin,
-    int rangeYmax,
-    int button
+COORD setConsoleButton(
+    int x,
+    int y,
+    int width,
+    int height,
+    int countButtonsX,
+    int countButtonsY = 1,
+    int returnButton = VK_LBUTTON,
+    consoleColor inactiveButton = DARKGRAY,
+    consoleColor activeButton = WHITE,
+    int YCorrect = 1,
+    bool boarder = false,
+    int boarder_style = 0,
+    consoleColor boarderColor = WHITE,
+    consoleColor backBoarderColor = BLACK,
+    std::string titles[] = 0,
+    int titlesIndent = 2,
+    consoleColor titlesColor = WHITE
 );
-
 
 std::string printFilter(
     int length,
@@ -199,6 +218,13 @@ std::string printFilter(
     std::string max = "z", 
     int minDig = INT_MIN, 
     int maxDig = INT_MAX
+);
+
+void setConsoleTrayIcon(
+    const wchar_t* trayInfo,
+    LPCWSTR pathIcon,
+    WNDPROC msgCallback,
+    UINT flags = NIF_MESSAGE | NIF_ICON | NIF_TIP
 );
 
 

@@ -1,31 +1,29 @@
 ﻿#include "devattribute.h"
 #include <iostream>
+#include <thread>
 
 
 
 
 
-int main()
-{
-	setConsoleNoSelection(true);
-	Sleep(1000);
-	setConsoleNoSelection(false);
+/*posY -= y;
+posX -= x;
 
-	pause();
+if (posY % (height + 1) == 0) GotoXY(10, 1, "BORDER");*/
 
+
+int main() {
+
+	Sleep(100);
+	utf.setUtfLocale();
+	std::string titles[3] = { "Главное меню","Поебота","Выйти в санузел" };
+	COORD key = setConsoleButton(40, 10, 20, 1, 1, 3, VK_RBUTTON, BROWN, WHITE, 1, false, 0, NUL, NUL, titles, 3, BLACK);
+	if (key.X == 0 && key.Y == 0) {
+		std::cout << "Выйшло пойти нахуй";
+	}
+	
+	std::string  ass = "Выйти в главное меню";
+	GotoXY(1, 2, ass, YELLOW);
+	winPause();
 }
 
-
-
-/*	MEMORYSTATUSEX memInfo = { 0 };
-	memInfo.dwLength = sizeof(memInfo);
-	GlobalMemoryStatusEx(&memInfo);
-	long double oldMem = memInfo.ullAvailPhys;
-	memory::_d_quickClean();
-	ZeroMemory(&memInfo, sizeof(memInfo));
-	memInfo.dwLength = sizeof(memInfo);
-	GlobalMemoryStatusEx(&memInfo);
-	long double newMem = memInfo.ullAvailPhys - oldMem;
-	std::string mem = std::to_string(newMem / pow(1024, 2));
-	std::cout << "\nPhysical memory cleared with result: " << mem.erase(mem.length() - 5, 5) << " mb";
-	system("pause > nul");*/

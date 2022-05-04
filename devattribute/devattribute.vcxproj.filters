@@ -24,4 +24,7 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="devattribute.lib" />
+  </ItemGroup>
 </Project>
