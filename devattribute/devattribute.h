@@ -196,7 +196,7 @@ COORD setConsoleButton(
     int height,
     int countButtonsX,
     int countButtonsY = 1,
-    int returnButton = VK_LBUTTON,
+    int returnButton = VK_RBUTTON,
     consoleColor inactiveButton = DARKGRAY,
     consoleColor activeButton = WHITE,
     int YCorrect = 1,

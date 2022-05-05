@@ -17,7 +17,7 @@ int main() {
 	Sleep(100);
 	utf.setUtfLocale();
 	std::string titles[3] = { "Главное меню","Поебота","Выйти в санузел" };
-	COORD key = setConsoleButton(40, 10, 20, 1, 1, 3, VK_RBUTTON, BROWN, WHITE, 1, false, 0, NUL, NUL, titles, 3, BLACK);
+	COORD key = setConsoleButton(5, 1, 6, 3, 6, 6, VK_RBUTTON, BROWN, WHITE, 1, false, 0, NUL, NUL, titles, 3, BLACK);
 	if (key.X == 0 && key.Y == 0) {
 		std::cout << "Выйшло пойти нахуй";
 	}

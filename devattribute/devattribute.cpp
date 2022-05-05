@@ -311,65 +311,58 @@ COORD setConsoleButton(
 {
 	RECT r{};
 	POINT p{};
-	COORD** buttonCord = new COORD * [countButtonsX], numButton{};;
+	COORD** buttonCord = new COORD * [countButtonsY], numButton{};
 	HWND wh = GetConsoleWindow();
 	showConsoleCursor(FALSE);
-	for (int i = 0; i < countButtonsX; i++) buttonCord[i] = new COORD[countButtonsY];
+	for (int i = 0; i < countButtonsY; i++) buttonCord[i] = new COORD[countButtonsX];
 	if (boarder) sheetGenerator(x - 1, y - 1, countButtonsX, countButtonsY, width, height,boarder_style,boarderColor,backBoarderColor);
-	
-		for (int i = 0, tempY = y; i < countButtonsY; i++) {
+		for (int i = 0, tempY = y ; i < countButtonsY; i++) {
 			for (int j = 0, tempX = x; j < countButtonsX; j++) {
 				if (inactiveButton != -1 || activeButton != -1) 
 					cleaning(tempX, tempY, width, height, inactiveButton);
-				if (countButtonsY <= countButtonsX) {
 					buttonCord[i][j].X = tempX;
 					buttonCord[i][j].Y = tempY;
-				}
-				else {
-					buttonCord[j][i].X = tempX;
-					buttonCord[j][i].Y = tempY;
-				}
-				if (titles != 0 && countButtonsX==1) {
+				if (titles != 0 && countButtonsX == 1) {
 					GotoXY(tempX + titlesIndent,tempY+(height/2), titles[i], titlesColor, inactiveButton);
 				}
-				else if (countButtonsY == 1) {
+				else if (titles != 0 && countButtonsY == 1) {
 					GotoXY(tempX + titlesIndent, tempY + (height / 2), titles[j], titlesColor, inactiveButton);
 				}
+
 				if (!boarder) tempX += width + 2;
 				else tempX += width + 1;
 			}
+
 			tempY += height + 1;
 		}
-	
-	int posX = 0, posY = 0, buttonActive = 0, i = 0, j = 0, tempCordX = 0, tempCordY = 0;
-	int buttonPointX = 0, buttonPointY = 0; // переменные для проверки находится или нет курсор на конкретной кнопке
+	int posX = 0, posY = 0, buttonActive = 0, i = 0, j = 0, tempCordX = 0, tempCordY = 0,
+		mCord = 0,buttonPointX = 0, buttonPointY = 0; // переменные для проверки находится или нет курсор на конкретной кнопке
 	while (true) {
-		Sleep(60);
 		GetWindowRect(wh, &r);
 		GetCursorPos(&p);
 		posX = ((p.x - r.left) / 8);
 		posY = ((p.y - r.top) / 16)-YCorrect;
 		for (i = 0; i < countButtonsY; i++) {
 			for (j = 0; j < countButtonsX; j++) {
-				if (countButtonsY <= countButtonsX) {
+				if (countButtonsX <= countButtonsY) mCord = i;
+				else mCord = j;
 					if (posX >= buttonCord[i][j].X && posX <= buttonCord[i][j].X + width && posY >= buttonCord[i][j].Y && posY <= buttonCord[i][j].Y + height) {
 						if (tempCordX != buttonCord[i][j].X || tempCordY != buttonCord[i][j].Y) {
 							cleaning(buttonCord[i][j].X, buttonCord[i][j].Y, width, height, activeButton);
+							if (titles != 0)
+								GotoXY(buttonCord[i][j].X + titlesIndent,buttonCord[i][j].Y + (height / 2), titles[mCord], titlesColor, activeButton);
 							if (tempCordX != 0 || tempCordY != 0) {
 								cleaning(tempCordX, tempCordY, width, height, inactiveButton);
-								if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1))
-									GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[j + 1], titlesColor, inactiveButton);
+								if (titles != 0)
+									GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[mCord+1], titlesColor, inactiveButton);
 							}
 							tempCordX = buttonCord[i][j].X;
 							tempCordY = buttonCord[i][j].Y;
-							if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1)) {
-								GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[j], BLACK, activeButton);
-							}
 
 						}
 						buttonPointY = i; buttonPointX = j;
 						if (GetKeyState(returnButton) < 0) {
-							for (int i = 0; i < countButtonsX; i++) // очистка памяти под массив координат кнопок
+							for (int i = 0; i < countButtonsY; i++) // очистка памяти под массив координат кнопок
 								delete[] buttonCord[i];
 							delete[] buttonCord;
 							if (countButtonsY != 1 || countButtonsX != 1) {
@@ -385,65 +378,23 @@ COORD setConsoleButton(
 					}
 					else if (i == buttonPointY && buttonPointX == j && (tempCordX != 0 || tempCordY != 0)) {
 						cleaning(tempCordX, tempCordY, width, height, inactiveButton);
-						if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1)) {
-							GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[j], titlesColor, inactiveButton);
-						}
+						if (titles != 0) 
+							GotoXY(tempCordX + titlesIndent,tempCordY + (height / 2), titles[mCord], titlesColor, inactiveButton);
 						tempCordX = 0;
 						tempCordY = 0;
 					}
-				}
-				else { // если кол-во кнопок по игреку больше кол-ва кнопок по иксу
-					if (posX >= buttonCord[j][i].X && posX <= buttonCord[j][i].X + width && posY >= buttonCord[j][i].Y && posY <= buttonCord[j][i].Y + height) {
-						if (tempCordX != buttonCord[j][i].X || tempCordY != buttonCord[j][i].Y) {
-							cleaning(buttonCord[j][i].X, buttonCord[j][i].Y, width, height, activeButton);
-							if (tempCordX != 0 || tempCordY != 0) {
-								cleaning(tempCordX, tempCordY, width, height, inactiveButton);
-								if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1)) 
-									GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[i+1], titlesColor, inactiveButton);
-							}
-							tempCordX = buttonCord[j][i].X;
-							tempCordY = buttonCord[j][i].Y;
-							if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1)) {
-								GotoXY(tempCordX+ titlesIndent, tempCordY + (height / 2), titles[i], BLACK, activeButton);
-							}
-						}
-						buttonPointY = i; buttonPointX = j;
-						if (GetKeyState(returnButton) < 0){
-							for (int i = 0; i < countButtonsX; i++) // очистка памяти под массив координат кнопок
-								delete[] buttonCord[i];
-							delete[] buttonCord;
-							if (countButtonsY != 1 || countButtonsX !=1) {
-								numButton.X = j+1;
-								numButton.Y = i+1;
-							}
-							else {
-								numButton.X = 1;
-								numButton.Y = 1;
-							}
-							return numButton;
-						}
-					}
-					else if (i == buttonPointY && buttonPointX == j && (tempCordX != 0 || tempCordY != 0)) {
-						cleaning(tempCordX, tempCordY, width, height, inactiveButton);
-						if (titles != 0 && (countButtonsX == 1 || countButtonsY == 1)) {
-							GotoXY(tempCordX + titlesIndent, tempCordY + (height / 2), titles[i], titlesColor, inactiveButton);
-						}
-						tempCordX = 0;
-						tempCordY = 0;
-					}
-				}
-
 			}
 
 		}
 		if (GetKeyState(VK_ESCAPE) < 0) {
-			for (int i = 0; i < countButtonsX; i++) 
+			for (int i = 0; i < countButtonsY; i++) 
 				delete[] buttonCord[i];
 			delete[] buttonCord;
 			numButton.X = 0;
 			numButton.Y = 0;
 			return numButton;
 		}
+		Sleep(60);
 	}
 }
 
@@ -500,7 +451,7 @@ std::string printFilter(int length, int x, int y, std::string mode, std::string 
 	}
 }
 
-void setConsoleTrayIcon(const wchar_t* trayInfo, LPCWSTR pathIcon, WNDPROC msgCallback, UINT flags)
+/*void setConsoleTrayIcon(const wchar_t* trayInfo, LPCWSTR pathIcon, WNDPROC msgCallback, UINT flags)
 {
 	HINSTANCE hinstance{};
 	NOTIFYICONDATA icon{};
@@ -526,7 +477,7 @@ void setConsoleTrayIcon(const wchar_t* trayInfo, LPCWSTR pathIcon, WNDPROC msgCa
 		DispatchMessage(&message);
 	}
 	Shell_NotifyIcon(NIM_DELETE, &icon);
-}
+}*/
 
 std::string operator - (std::string str1, std::string str2)
 {
